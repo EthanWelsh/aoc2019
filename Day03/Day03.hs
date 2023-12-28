@@ -1,11 +1,9 @@
 module Day03.Day03 (solve) where
 
-import           Data.Function        (on)
-import           Data.List            (minimumBy)
 import qualified Data.Map             as M
 import qualified Data.Set             as S
 import           Text.Megaparsec
-import           Text.Megaparsec.Char (char, newline, string)
+import           Text.Megaparsec.Char (char)
 import           Utils.Maze
 import           Utils.ParserUtils    (Parser, integer)
 
@@ -32,7 +30,7 @@ parseInput = do
   return (a, b)
 
 step :: Point -> Step -> [Point]
-step p (d, 0) = []
+step _ (_, 0) = []
 step p (d, c) = let
   newPoint = movePoint p d
   futurePoints = step newPoint (d, c - 1)
@@ -43,7 +41,7 @@ pointsInLine current [] = [current]
 pointsInLine current (s:ss) = let
   pointsFromCurrentSegment = step current s
   lastPointInSegment = last pointsFromCurrentSegment
-  in  pointsFromCurrentSegment ++ (pointsInLine lastPointInSegment ss)
+  in pointsFromCurrentSegment ++ pointsInLine lastPointInSegment ss
 
 getCrossingPoints :: [Point] -> [Point] -> [Point]
 getCrossingPoints a b = S.toList $ S.intersection (S.fromList a) (S.fromList b)
