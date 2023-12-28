@@ -3,7 +3,6 @@ module Utils.Maze (
   Maze,
   Direction(North, South, East, West),
   movePoint,
-  movePointByCount,
   mazeFromList,
   mazeToList,
   height,
