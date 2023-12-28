@@ -14,20 +14,14 @@ data Instruction = Add Address Address Address
 type Input = Memory
 
 instructionSize :: Instruction -> Int
-instructionSize (Add _ _ _)      = 4
-instructionSize (Multiply _ _ _) = 4
-instructionSize End              = 1
+instructionSize (Add {})      = 4
+instructionSize (Multiply {}) = 4
+instructionSize End           = 1
 
 parseInput :: Parser Input
 parseInput = do
    m <- integer `sepBy` char ','
    return $ Memory m
-
-(@) :: Memory -> Address -> Int
-(@) (Memory m) (Address a) = m !! a
-
-(@+) :: Address -> Int -> Address
-(@+) (Address a) offset = Address $ a + offset
 
 get :: Memory -> Address -> Int
 get m a = m @ a
@@ -37,6 +31,12 @@ set (Memory m) (Address a) v = Memory $ (element a .~ v) m
 
 setAll :: Memory -> [(Address, Int)] -> Memory
 setAll = foldl (\m (a, v) -> set m a v)
+
+(@) :: Memory -> Address -> Int
+(@) = get
+
+(@+) :: Address -> Int -> Address
+(@+) (Address a) offset = Address $ a + offset
 
 runInstruction :: Memory -> Instruction -> Memory
 runInstruction m End              = m
@@ -53,22 +53,22 @@ instructionAtAddress :: Memory -> Address -> Instruction
 instructionAtAddress m a = let
   opcode = m @ a
   in case opcode of
-    1 -> uncurry3 Add (next3 m a)
-    2 -> uncurry3 Multiply (next3 m a)
+    1  -> uncurry3 Add (next3 m a)
+    2  -> uncurry3 Multiply (next3 m a)
     99 -> End
 
 isEnd :: Instruction -> Bool
 isEnd End = True
-isEnd _ = False
+isEnd _   = False
 
 runProgram :: Memory -> Address -> Memory
 runProgram m a = let
   instruction = instructionAtAddress m a
   nextA = a @+ instructionSize instruction
   result = runInstruction m instruction
-  in if isEnd instruction 
-     then m 
-     else runProgram result nextA 
+  in if isEnd instruction
+     then m
+     else runProgram result nextA
 
 possibleInputs :: [(Int, Int)]
 possibleInputs = [(a, b) | a <- [0..99], b <- [0..99]]
