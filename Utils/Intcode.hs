@@ -7,8 +7,8 @@ module Utils.Intcode(
   runProgram,
 ) where
 
-import           Control.Lens         (element, (.~))
-import           Data.Tuple.Extra     (uncurry3)
+import           Control.Lens     (element, (.~))
+import           Data.Tuple.Extra (uncurry3)
 
 newtype Memory = Memory [Int] deriving (Show)
 newtype Address = Address Int deriving (Show, Num)
@@ -17,10 +17,10 @@ data Instruction = Add Address Address Address
                  | Halt deriving (Show)
 
 data Machine = Machine { getMemory :: Memory
-                       , getIp :: Address
-                       , getInput :: [Int]
+                       , getIp     :: Address
+                       , getInput  :: [Int]
                        , getOutput :: [Int]
-                       , isHalted :: Bool
+                       , isHalted  :: Bool
                        } deriving (Show)
 
 machineFromList :: [Int] -> Machine
@@ -34,7 +34,7 @@ machineFromList m = Machine { getMemory = Memory m
 instructionSize :: Instruction -> Int
 instructionSize (Add {})      = 4
 instructionSize (Multiply {}) = 4
-instructionSize Halt           = 1
+instructionSize Halt          = 1
 
 get :: Memory -> Address -> Int
 get (Memory m) (Address a) = m !! a
@@ -79,7 +79,7 @@ instructionAtAddress m a = let
     1  -> uncurry3 Add (next3 m a)
     2  -> uncurry3 Multiply (next3 m a)
     99 -> Halt
-    x -> error $ "Unexpected opcode=" ++ show x
+    x  -> error $ "Unexpected opcode=" ++ show x
 
 runProgram :: Machine -> Machine
 runProgram m = let
