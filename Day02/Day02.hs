@@ -5,12 +5,12 @@ import           Text.Megaparsec.Char (char)
 import           Utils.Intcode
 import           Utils.ParserUtils    (Parser, integer)
 
-type Input = Memory
+type Input = Machine
 
 parseInput :: Parser Input
 parseInput = do
    m <- integer `sepBy` char ','
-   return $ memoryFromList m
+   return $ machineFromList m
 
 possibleInputs :: [(Int, Int)]
 possibleInputs = [(a, b) | a <- [0..99], b <- [0..99]]
@@ -20,7 +20,7 @@ part1 input = do
   putStr "Part 1: "
   print $ runProgramWithInputs input (12, 2)
 
-findRightInputs :: Memory -> Int -> [(Int, Int)] -> (Int, Int)
+findRightInputs :: Machine -> Int -> [(Int, Int)] -> (Int, Int)
 findRightInputs _ _ [] = error "Reached end of inputs before finding a match"
 findRightInputs m target (x:xs) = let
   result = runProgramWithInputs m x

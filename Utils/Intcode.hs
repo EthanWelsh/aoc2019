@@ -1,19 +1,8 @@
 module Utils.Intcode(
-  Memory,
-  Address,
-  Instruction,
-  address,
-  memoryFromList,
-  get,
-  set,
-  setAll,
-  (@),
-  (@+),
-  runInstruction,
+  Machine,
   setInputs,
-  instructionAtAddress,
-  runProgram,
-  runProgramWithInputs
+  runProgramWithInputs,
+  machineFromList,
 ) where
 
 import           Control.Lens         (element, (.~))
@@ -23,18 +12,30 @@ newtype Memory = Memory [Int] deriving (Show)
 newtype Address = Address Int deriving (Show, Num)
 data Instruction = Add Address Address Address
                  | Multiply Address Address Address
-                 | End deriving (Show)
+                 | Halt deriving (Show)
+
+data Machine = Machine { getMemory :: Memory
+                       , getIp :: Address
+                       , getInput :: [Int]
+                       , getOutput :: [Int]
+                       , isHalted :: Bool
+                       } deriving (Show)
+
+machineFromList :: [Int] -> Machine
+machineFromList m = Machine { getMemory = Memory m
+                            , getIp = Address 0
+                            , getInput = []
+                            , getOutput = []
+                            , isHalted = False
+                            }
 
 memoryFromList :: [Int] -> Memory
 memoryFromList = Memory
 
-address :: Int -> Address
-address n = Address n
-
 instructionSize :: Instruction -> Int
 instructionSize (Add {})      = 4
 instructionSize (Multiply {}) = 4
-instructionSize End           = 1
+instructionSize Halt           = 1
 
 get :: Memory -> Address -> Int
 get (Memory m) (Address a) = m !! a
@@ -51,10 +52,20 @@ setAll = foldl (\m (a, v) -> set m a v)
 (@+) :: Address -> Int -> Address
 (@+) (Address a) offset = Address $ a + offset
 
-runInstruction :: Memory -> Instruction -> Memory
-runInstruction m End              = m
-runInstruction m (Add a b r)      = set m r (m @ a + m @ b)
-runInstruction m (Multiply a b r) = set m r (m @ a * m @ b)
+runInstruction :: Machine -> Instruction -> Machine
+runInstruction m Halt = m { isHalted = True }
+runInstruction m i@(Add a b r) = let
+  mem = getMemory m
+  mem' = set mem r (mem @ a + mem @ b)
+  ip' = getIp m @+ instructionSize i
+  in m { getMemory = mem'
+       , getIp = ip' }
+runInstruction m i@(Multiply a b r) = let
+  mem = getMemory m
+  mem' = set mem r (mem @ a * mem @ b)
+  ip' = getIp m @+ instructionSize i
+  in m { getMemory = mem'
+       , getIp = ip' }
 
 setInputs :: Memory -> (Int, Int) -> Memory
 setInputs m (verb, noun) = setAll m [(1, verb), (2, noun)]
@@ -68,23 +79,21 @@ instructionAtAddress m a = let
   in case opcode of
     1  -> uncurry3 Add (next3 m a)
     2  -> uncurry3 Multiply (next3 m a)
-    99 -> End
+    99 -> Halt
     x -> error $ "Unexpected opcode=" ++ show x
 
-isEnd :: Instruction -> Bool
-isEnd End = True
-isEnd _   = False
-
-runProgram :: Memory -> Address -> Memory
-runProgram m a = let
-  instruction = instructionAtAddress m a
-  nextA = a @+ instructionSize instruction
-  result = runInstruction m instruction
-  in if isEnd instruction
+runProgram :: Machine -> Machine
+runProgram m = let
+  ip = getIp m
+  memory = getMemory m
+  instruction = instructionAtAddress memory ip
+  m' = runInstruction m instruction
+  in if isHalted m
      then m
-     else runProgram result nextA
+     else runProgram m'
 
-runProgramWithInputs :: Memory -> (Int, Int) -> Int
+runProgramWithInputs :: Machine -> (Int, Int) -> Int
 runProgramWithInputs m inputs = let
-  mm = setInputs m inputs
-  in runProgram mm (Address 0) @ 0
+  mem = getMemory m
+  m' = m { getMemory = setInputs mem inputs }
+  in getMemory (runProgram m') @ Address 0
