@@ -1,8 +1,10 @@
 module Utils.Intcode(
-  Machine,
+  Machine (..),
+  Address (..),
+  (@),
   setInputs,
-  runProgramWithInputs,
   machineFromList,
+  runProgram,
 ) where
 
 import           Control.Lens         (element, (.~))
@@ -28,9 +30,6 @@ machineFromList m = Machine { getMemory = Memory m
                             , getOutput = []
                             , isHalted = False
                             }
-
-memoryFromList :: [Int] -> Memory
-memoryFromList = Memory
 
 instructionSize :: Instruction -> Int
 instructionSize (Add {})      = 4
@@ -91,9 +90,3 @@ runProgram m = let
   in if isHalted m
      then m
      else runProgram m'
-
-runProgramWithInputs :: Machine -> (Int, Int) -> Int
-runProgramWithInputs m inputs = let
-  mem = getMemory m
-  m' = m { getMemory = setInputs mem inputs }
-  in getMemory (runProgram m') @ Address 0

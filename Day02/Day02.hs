@@ -15,6 +15,12 @@ parseInput = do
 possibleInputs :: [(Int, Int)]
 possibleInputs = [(a, b) | a <- [0..99], b <- [0..99]]
 
+runProgramWithInputs :: Machine -> (Int, Int) -> Int
+runProgramWithInputs m inputs = let
+  mem = getMemory m
+  m' = m { getMemory = setInputs mem inputs }
+  in getMemory (runProgram m') @ Address 0
+
 part1 :: Input -> IO ()
 part1 input = do
   putStr "Part 1: "
