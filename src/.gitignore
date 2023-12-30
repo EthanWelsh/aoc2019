@@ -21,8 +21,3 @@ cabal.project.local
 cabal.project.local~
 .HTF/
 .ghc.environment.*
-test.txt
-input.txt
-.DS_Store
-.idea/
-_templates/

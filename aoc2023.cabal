@@ -1,0 +1,78 @@
+cabal-version:       2.2
+
+name:                aoc2023
+version:             0.1.0.0
+homepage:            https://github.com/EthanWelsh/aoc2023#readme
+license:             Unlicense
+license-file:        LICENSE
+author:              Ethan Welsh
+maintainer:          example@example.com
+copyright:           2023 Ethan Welsh
+category:            Web
+build-type:          Simple
+extra-source-files:  README.md
+
+executable aoc2023
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  other-modules:       Day00.Test
+                       Day01.Day01
+                       Day02.Day02
+                       Day03.Day03
+                       Day04.Day04
+                       Day05.Day05
+                       Day06.Day06
+                       Day07.Day07
+                       Day08.Day08
+                       Day09.Day09
+                       Day10.Day10
+                       Day11.Day11
+                       Day12.Day12
+                       Day13.Day13
+                       Day14.Day14
+                       Day15.Day15
+                       Day16.Day16
+                       Day17.Day17
+                       Day18.Day18
+                       Day19.Day19
+                       Day20.Day20
+                       Day21.Day21
+                       Day22.Day22
+                       Day23.Day23
+                       Day24.Day24
+                       Day25.Day25
+                       Utils.Intcode
+                       Utils.Maze
+                       Utils.ParserUtils
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5
+                     , megaparsec >= 9.0 && < 10
+                     , extra
+                     , containers
+                     , vector-algorithms
+                     , vector
+                     , data-interval
+                     , hashmap
+                     , lens
+                     , search-algorithms
+                     , time
+                     , range
+                     , template-haskell
+                     , unordered-containers
+                     , ansi-terminal
+                     , directory
+                     , optparse-applicative
+                     , parser-combinators
+                     , text
+                     , mtl
+                     , vector
+                     , memoize
+  ghc-options:         -Wall
+                       -Wcompat
+                       -Widentities
+                       -Wincomplete-record-updates
+                       -Wincomplete-uni-patterns
+                       -Wmissing-export-lists
+                       -Wmissing-home-modules
+                       -Wpartial-fields
+                       -Wredundant-constraints
