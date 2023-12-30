@@ -15,6 +15,9 @@ parseInput = do
 possibleInputs :: [(Int, Int)]
 possibleInputs = [(a, b) | a <- [0..99], b <- [0..99]]
 
+setInputs :: Memory -> (Int, Int) -> Memory
+setInputs m (verb, noun) = setAll m [(Address 1, verb), (Address 2, noun)]
+
 runProgramWithInputs :: Machine -> (Int, Int) -> Int
 runProgramWithInputs m inputs = let
   mem = getMemory m

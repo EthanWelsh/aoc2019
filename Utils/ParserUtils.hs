@@ -11,15 +11,16 @@ module Utils.ParserUtils (
     pipe,
     parens,
     skipSpaces,
-    charInRange
+    charInRange,
+    signedInteger
 )
 where
 
 import           Control.Monad              (void)
 import           Data.Void                  (Void)
 import           Text.Megaparsec            (Parsec, between, empty, many,
-                                             satisfy)
-import           Text.Megaparsec.Char       (space1, string)
+                                             satisfy, (<|>))
+import           Text.Megaparsec.Char       (space1, string, char)
 import qualified Text.Megaparsec.Char.Lexer as L
 
 type Parser = Parsec Void String
@@ -32,6 +33,15 @@ lexeme = L.lexeme sc
 
 integer :: Parser Int
 integer = lexeme L.decimal
+
+negativeInteger :: Parser Int
+negativeInteger = do
+  void $ char '-'
+  n <- integer
+  return (n * (-1))
+
+signedInteger :: Parser Int
+signedInteger = negativeInteger <|> integer
 
 symbol :: String -> Parser String
 symbol = L.symbol sc

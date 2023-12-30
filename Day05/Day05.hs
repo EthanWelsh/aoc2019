@@ -1,24 +1,30 @@
 module Day05.Day05 (solve) where
 
-import           Utils.ParserUtils     (Parser)
-import           Text.Megaparsec
---import Control.Monad (void)
---import Text.Megaparsec.Char (string, char, newline)
+import           Text.Megaparsec hiding (getInput)
+import           Text.Megaparsec.Char (char, newline, string)
+import           Utils.Intcode
+import           Utils.ParserUtils    (Parser, signedInteger)
 
-type Input = String
+type Input = Machine
 
 parseInput :: Parser Input
-parseInput = error "TODO"
+parseInput = do
+   m <- signedInteger `sepBy` char ','
+   return $ machineFromList m
 
 part1 :: Input -> IO ()
 part1 input = do
   putStr "Part 1: "
-  print input
+  let m = input { getInput = [1] }
+  print $ getOutput $ runProgram $ m
 
 part2 :: Input -> IO ()
 part2 input = do
-  putStr "Part 2: "
-  print input
+  putStr "Part 2: " 
+  --let m = input { getInput = [1] }
+  --print $ instructionAtAddress (getMemory m) (Address 6)
+  --print input
+  -- 3 + 1100
 
 solve :: FilePath -> IO ()
 solve filePath = do
