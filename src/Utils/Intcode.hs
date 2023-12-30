@@ -7,7 +7,6 @@ module Utils.Intcode(
   machineFromList,
   runProgram,
   instructionAtAddress,
-  addPadding,
 ) where
 
 import           Control.Lens (element, (.~))
@@ -57,11 +56,15 @@ setAll = foldl (\m (a, v) -> set m a v)
 (@+) (Address a) offset = Address $ a + offset
 
 instructionSize :: Instruction -> Int
-instructionSize (Add {})      = 4
-instructionSize (Multiply {}) = 4
-instructionSize (Input {})    = 2
-instructionSize (Output {})   = 2
-instructionSize Halt          = 1
+instructionSize (Add {})         = 4
+instructionSize (Multiply {})    = 4
+instructionSize (Input {})       = 2
+instructionSize (Output {})      = 2
+instructionSize (JumpIfTrue {})  = 3
+instructionSize (JumpIfFalse {}) = 3
+instructionSize (LessThan {})    = 4
+instructionSize (Equals {})      = 4
+instructionSize Halt             = 1
 
 getValue :: Memory -> Operand -> Int
 getValue m (Pointer a)   = m @ a
@@ -76,21 +79,37 @@ runInstruction :: Machine -> Instruction -> Machine
 runInstruction m Halt = m { isHalted = True }
 runInstruction m i@(Add a b r) =
   m { getMemory = math (getMemory m) a b r (+)
-    , getIp = getIp m @+ instructionSize i 
+    , getIp = getIp m @+ instructionSize i
     }
 runInstruction m i@(Multiply a b r) =
   m { getMemory = math (getMemory m) a b r (*)
-    , getIp = getIp m @+ instructionSize i 
+    , getIp = getIp m @+ instructionSize i
     }
 runInstruction m i@(Input a) =
   m { getMemory = set (getMemory m) a (head $ getInput m)
     , getIp = getIp m @+ instructionSize i
-    , getInput = tail $ getInput m 
+    , getInput = tail $ getInput m
     }
 runInstruction m i@(Output a) = let
   v = getValue (getMemory m) a
   in m { getIp = getIp m @+ instructionSize i
        , getOutput = v:getOutput m }
+runInstruction m i@(JumpIfTrue a b) = let
+  testValue = getValue (getMemory m) a
+  ipIfJump = Address $ getValue (getMemory m) b
+  ipIfNotJump = getIp m @+ instructionSize i
+  in m { getIp = if testValue /= 0 then ipIfJump else ipIfNotJump }
+runInstruction m i@(JumpIfFalse a b) = let
+  testValue = getValue (getMemory m) a
+  ipIfJump = Address $ getValue (getMemory m) b
+  ipIfNotJump = getIp m @+ instructionSize i
+  in m { getIp = if testValue == 0 then ipIfJump else ipIfNotJump }
+runInstruction m i@(LessThan a b r) =
+  m { getMemory = math (getMemory m) a b r (\x y -> if x < y then 1 else 0)
+    , getIp = getIp m @+ instructionSize i }
+runInstruction m i@(Equals a b r) =
+  m { getMemory = math (getMemory m) a b r (\x y -> if x == y then 1 else 0)
+    , getIp = getIp m @+ instructionSize i }
 
 slice :: Int -> Int -> [a] -> [a]
 slice from to xs = take (to - from + 1) (drop from xs)
@@ -129,6 +148,10 @@ instructionAtAddress m a = let
     "02" -> Multiply (ops !! 0) (ops !! 1) (extractAddress (ops !! 2))
     "03" -> Input (extractAddress (head ops))
     "04" -> Output (head ops)
+    "05" -> JumpIfTrue (ops !! 0) (ops !! 1)
+    "06" -> JumpIfFalse (ops !! 0) (ops !! 1)
+    "07" -> LessThan (ops !! 0) (ops !! 1) (extractAddress (ops !! 2))
+    "08" -> Equals (ops !! 0) (ops !! 1) (extractAddress (ops !! 2))
     "99" -> Halt
     x  -> error $ "Unexpected opcode=" ++ show x ++ " a=" ++ show a ++ " m=" ++ show m
 

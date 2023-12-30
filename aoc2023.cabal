@@ -76,3 +76,4 @@ executable aoc2023
                        -Wmissing-home-modules
                        -Wpartial-fields
                        -Wredundant-constraints
+                       -dynamic
